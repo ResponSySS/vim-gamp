@@ -9,11 +9,14 @@ GAMP is a very lightweight Vim completion system for libc functions and virtuall
 REQUIREMENTS
 ------------
 
-  Mandatory:
-    * Linux-like OS with a shell and a manpage system
-    * Vim 'laststatus' must be set to 2
-  Optional:
-    * GNU Global (its use can be disabled)
+Mandatory:
+  
+  * Linux-like OS with a shell and a manpage system
+  * Vim 'laststatus' must be set to 2
+    
+Optional:
+  
+  * GNU Global (its use can be disabled)
 
 FEATURES
 --------
