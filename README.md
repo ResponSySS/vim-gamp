@@ -1,5 +1,7 @@
 GTags And Man Proto (GAMP)
-========
+==========================
+
+http://www.vim.org/scripts/script.php?script_id=4946
 
 SUMMARY
 -------
