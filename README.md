@@ -1,17 +1,23 @@
 GTags And Man Proto (GAMP)
 ========
 
-*SUMMARY*
+SUMMARY
+-------
+
 GAMP is a very lightweight Vim completion system for libc functions and virtually any other functions.
 
-*REQUIREMENTS*
+REQUIREMENTS
+------------
+
   Mandatory:
     * Linux-like OS with a shell and a manpage system
     * Vim 'laststatus' must be set to 2
   Optional:
     * GNU Global (its use can be disabled)
 
-*FEATURES*
+FEATURES
+--------
+
   * 3 modes:
     * Complete function prototype in completion mode
     * Hint for function prototype in statusline mode
@@ -24,12 +30,17 @@ GAMP is a very lightweight Vim completion system for libc functions and virtuall
     auto-update feature
 
 
-*INSTALL DETAILS*
+INSTALL DETAILS
+---------------
 
 Inside the GAMP.tar archive are two files that you have to put in the appropriate location of your vim folder (for me, it's  $HOME/.vim ).
-You can do it using your graphical archive manager (like  file-roller ), or with the command-line with
+You can do it using your graphical archive manager (like  file-roller ), or with the command-line with:
+
     $ tar -xvf  GAMP.tar
+
 to extract the archive, and:
+
     $ cp  doc/gtags-and-man-proto.txt      $HOME/.vim/doc
-    $ cp  plugin/gtags-and-man-proto.vim   $HOME/.vim/plugin 
+    $ cp  plugin/gtags-and-man-proto.vim   $HOME/.vim/plugin
+
 to copy the files.
