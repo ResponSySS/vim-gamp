@@ -1,13 +1,18 @@
 " Vim plugin for Linux man 2, 3 and GTags-powered prototype completion.
 "        Author: Sylvain Saubier (ResponSyS), saubiersylvain@gmail.com
 "       Version: 0.5
-" Last Modified: 140522 
+" Last Modified: 140523
 "       License: CC0
 "
 " This script comes with the help file  doc/gtags-and-man-proto.txt .
 "
 " TODO
-" * hints for the type of the function
+" * handle multiple definition in one man (see  man clone  )
+" * handle func pointer as arguments (see  man clone  )
+" * hints for the type of the function ( including function pointer ( see  man __free_hook ) )
+" * remove non-keyword words in completion mode:
+"       myFunc ( {+int_datIntLel+} )    /* not removed */
+"       myFunc ( {+int+} )              /* removed */
 " * using da @g register is not so neat bro
 "   * but is nice ta yank da prototype dat way ya know lel
 " * improve compatibility with Java, PHP and such
@@ -119,26 +124,28 @@ endfunction
 "
 " Adds spaces between prototype arguments
 "
-function! s:F_ParseProtoSpace ( s_proto )
+function! s:F_ParseProtoArgs ( s_proto )
     return substitute (a:s_proto, ",", ", ", 'g')
 endf
 
 "
-" Removes extra spaces and newlines
+" Removes newlines, comments and extra spaces 
 "
-function! s:F_ParseProtoGlobal ( s_proto )
+function! s:F_ParseProtoSpace ( s_proto )
     let l:s_protoNew = substitute (a:s_proto, '[\n\r]', "", 'g' )
+    let l:s_protoNew = substitute (l:s_protoNew, '\/[*].*[*]\/', " ", 'g')
     let l:s_protoNew = substitute (l:s_protoNew, '\s\+', " ", 'g')
-    return s:F_ParseProtoSpace ( l:s_protoNew )
+    return s:F_ParseProtoArgs ( l:s_protoNew )
 endf
 
 "
 " Crops function to args with parenthesis
 "
-function! s:F_ParseProtoCrop ( s_proto )
-    let l:s_protoNew = substitute ( a:s_proto, ").*$", ")", '' )
+function! s:F_ParseProtoMan ( s_proto )
+    let l:s_protoNew = substitute ( a:s_proto, ");.*$", ")", '' )
     let l:s_protoNew = substitute ( l:s_protoNew, "^.*(", "(", '' )
     return s:F_ParseProtoSpace ( l:s_protoNew )
+"   return s:F_ParseProtoArgs ( l:s_protoNew )
 endf
 
 "
@@ -164,14 +171,16 @@ endf
 " Returns -1 on error
 "
 function! s:F_ProtoLookupMan2 ( pattern )
-    let l:cmd = "man 2 " . a:pattern . " | grep '" . a:pattern . "(' | head -1"
+"   let l:cmd = "man 2 " . a:pattern . " | grep '\\<" . a:pattern . "\\>(' | head -1"
+    let l:cmd = "man 2 " . a:pattern . " | sed -n '/\\<[a-zA-Z_]*\\> [*]*\(\\?[*]*\<" . a:pattern . "\\>)\\?([^)]/,/);$/p' | uniq"
+    " sed searches for pattern  {type} [*...]{pattern}[)](  until  );"
     let l:man2_result = system ( "man 2 " . a:pattern . " > /dev/null")
 
     if v:shell_error != 0                   " If man 2 fails
         let s:s_error = l:man2_result
         return -1
     else
-        return s:F_ParseProtoCrop ( system ( l:cmd ) )
+        return s:F_ParseProtoMan ( system ( l:cmd ) )
         en
 endf
 
@@ -180,14 +189,16 @@ endf
 " Returns -1 on error
 "
 function! s:F_ProtoLookupMan3 ( pattern )
-    let l:cmd = "man 3 " . a:pattern . " | grep '" . a:pattern . "(' | head -1"
+"   let l:cmd = "man 3 " . a:pattern . " | grep '\\<" . a:pattern . "\\>(' | head -1"
+    let l:cmd = "man 3 " . a:pattern . " | sed -n '/\\<[a-zA-Z_]*\\> [*]*\(\\?[*]*\\<" . a:pattern . "\\>)\\?([^)]/,/);$/p' | uniq"
+    " sed searches for pattern  {type} [*...][(][*...]{pattern}[)](  until  );"
     let l:man3_result = system ( "man 3 " . a:pattern . " > /dev/null")
 
     if v:shell_error != 0                   " If man 3 fails
         let s:s_error = l:man3_result
         return -1
     else
-        return s:F_ParseProtoCrop ( system ( l:cmd ) )
+        return s:F_ParseProtoMan ( system ( l:cmd ) )
         en
 endf
 
@@ -223,31 +234,34 @@ function! s:F_ProtoLookupGlobal ( pattern )
         en
 
     if l:global_result == '' 
-        let s:s_error = "Tag which matches to " . g:GAMP_Shell_Quote_Char . a:pattern . g:GAMP_Shell_Quote_Char . " not found."
+        let s:s_error = "Tag which matches to " . g:GAMP_Shell_Quote_Char . a:pattern . g:GAMP_Shell_Quote_Char . " not found among GTags."
         return -1
         en
 
     sp                              " Open split window
-    let l:efm = &errorformat        " Go to function definition using QuickFix jump
+    let l:efm = &errorformat        
     let &errorformat = l:gtags_efm
-    cexpr! l:global_result
+    cexpr! l:global_result          " Go to function definition using QuickFix jump
     let &errorformat = l:efm
 
     call search ('(', 'e')
     let l:reg_g = @g
-    let l:reg_quote = @"            " Yank function prototype in @g register
+    let l:reg_quote = @"
+    " Yank function prototype in @g register
     exe 'norm v%"gy'
     let l:protoUnparsed = @g        " Store register @g in a var
     let @g = l:reg_g                " Give back initial values to registers
     let @" = l:reg_quote
 
+    " Delete buffer if set and if file is not the same as the originally active file
     if g:GAMP_UnloadLoadedBuffer == 1
-        bdelete
+        if expand( "%" ) != s:filename
+            bdelete
     else
         q
         en
 
-    return s:F_ParseProtoGlobal ( l:protoUnparsed )
+    return s:F_ParseProtoSpace ( l:protoUnparsed )
 endfunction
 
 "
@@ -279,14 +293,24 @@ function! s:F_GetProto ()
             norm gE
             endw
         en
-    let s:func_name = expand ( "<cword>" )          " now on the last letter of word to complete
+    " now on the last letter of word to complete
+    let s:func_name = expand ( "<cword>" )          " store current word in var
+    let s:filename = expand ( "%" )                 " store current filename in var
 
     let l:func_args = s:F_ProtoLookupMan3 ( s:func_name )
-    if  l:func_args == -1                           " if func not known to man 3
-        let s:s_errorFull = s:s_error . "; "
+    if  l:func_args == -1 || l:func_args == ""      " if func not in man 3 or nothing returned
+        if l:func_args == -1
+            let s:s_errorFull = s:s_error . "; "
+        else
+            let s:s_errorFull = "No definition found in " . s:func_name . "(3) ; "
+            en
         let l:func_args = s:F_ProtoLookupMan2 ( s:func_name )
-        if l:func_args == -1                            " if func not known to man 2
-            let s:s_errorFull = s:s_errorFull . s:s_error . "; "
+        if l:func_args == -1 || l:func_args == ""   " if func not in man 2 or nothing returned
+            if l:func_args == -1
+                let s:s_errorFull = s:s_errorFull . s:s_error . "; "
+            else
+                let s:s_errorFull =  s:s_errorFull . "No definition found in " . s:func_name . "(2) ; "
+                en
             let l:func_args = s:F_ProtoLookupGlobal ( s:func_name )
             if  l:func_args == -1                           " if func not known to GTags
                 let s:s_errorFull = s:s_errorFull . s:s_error
@@ -336,6 +360,17 @@ function! s:F_GtagsAndManCompl (  )
 endf
 
 "
+" Put GAMP in statusline mode, process completion and get back to
+" original mode
+"
+function! s:F_GtagsAndManHintOnly (  )
+    let l:n_modePrev = g:GAMP_Mode
+    let g:GAMP_Mode = 2
+    call s:F_GtagsAndManCompl (  )
+    let g:GAMP_Mode = l:n_modePrev
+endf
+
+"
 " Toggle statusline value
 "
 function! s:F_StatusLineToggle ( status )
@@ -359,8 +394,12 @@ if has ( "autocmd" ) && !exists ( "s:GAMP_Autocmd" )
     autocmd InsertLeave,BufWritePost *    call <SID>F_StatusLineToggle (0)
     en
 command!                    GAMPStatusLineToggle    call <SID>F_StatusLineToggle(-1)
-nmap     <unique> <silent>  gmt                     :call <SID>F_StatusLineToggle(-1)<CR>
 command!                    GAMPComplete            call <SID>F_GtagsAndManCompl()
+
+nmap     <unique> <silent>  gmt                     :call <SID>F_StatusLineToggle(-1)<CR>
 nmap     <unique> <silent>  gmc                     :call <SID>F_GtagsAndManCompl()<CR>
-inoremap <unique> <silent>  <Leader>gm              <Esc>:call <SID>F_GtagsAndManCompl()<CR>i
-nnoremap <unique> <silent>  <Leader>gm              :call <SID>F_GtagsAndManCompl()<CR>
+nmap     <unique> <silent>  gmh                     :call <SID>F_GtagsAndManHintOnly()<CR>
+
+imap     <unique> <silent>  <Leader>gmc             <Esc>:call <SID>F_GtagsAndManCompl()<CR>i
+imap     <unique> <silent>  <Leader>gmh             <Esc>:call <SID>F_GtagsAndManHintOnly()<CR>i
+
