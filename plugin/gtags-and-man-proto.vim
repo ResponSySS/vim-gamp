@@ -7,6 +7,10 @@
 " This script comes with the help file  doc/gtags-and-man-proto.txt .
 "
 " TODO
+" * remake arg parsing steps:
+"   * crop prototype
+"   * look for matching prototype of the last ");" parenthesis
+"   * separate arguments on one side (matching parenthesis) and type and name on the other (rest)
 " * handle multiple definition in one man (see  man clone  )
 " * handle func pointer as arguments (see  man clone  )
 " * hints for the type of the function ( including function pointer ( see  man __free_hook ) )
@@ -172,7 +176,7 @@ endf
 "
 function! s:F_ProtoLookupMan2 ( pattern )
 "   let l:cmd = "man 2 " . a:pattern . " | grep '\\<" . a:pattern . "\\>(' | head -1"
-    let l:cmd = "man 2 " . a:pattern . " | sed -n '/\\<[a-zA-Z_]*\\> [*]*\(\\?[*]*\<" . a:pattern . "\\>)\\?([^)]/,/);$/p' | uniq"
+    let l:cmd = "man 2 " . a:pattern . " | sed -n '/\\<[a-zA-Z_]*\\> [*]*\(\\?[*]*\\<" . a:pattern . "\\>)\\?([^)]/,/);$/p' | uniq"
     " sed searches for pattern  {type} [*...]{pattern}[)](  until  );"
     let l:man2_result = system ( "man 2 " . a:pattern . " > /dev/null")
 
