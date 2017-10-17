@@ -1,12 +1,13 @@
 " Vim plugin for Linux man 2, 3 and GTags-powered prototype completion.
-"        Author: Sylvain Saubier (ResponSyS), saubiersylvain@gmail.com
-"       Version: 0.5
+"        Author: Sylvain Saubier, <feedback@systemicresponse.com>
+"       Version: 0.5.9
 " Last Modified: 140523
 "       License: CC0
 "
 " This script comes with the help file  doc/gtags-and-man-proto.txt .
 "
 " TODO
+" * only activate it with appropriate source files (*.h,*.c,*.java,*.php)
 " * remake arg parsing steps:
 "   * crop prototype
 "   * look for matching prototype of the last ");" parenthesis
@@ -156,8 +157,9 @@ endf
 " Adds jumps to prototype
 "
 function! s:F_AddJumpsProto ( s_proto )
-    let l:s_protoNew = substitute ( a:s_proto, '*', "_pt_", 'g' )
+    let l:s_protoNew = substitute ( a:s_proto, '*', "pt_", 'g' )
     let l:s_protoNew = substitute ( l:s_protoNew, "[.][.][.]", "VA_Args", 'g' )
+    let l:s_protoNew = substitute ( l:s_protoNew, "\\<restrict\\>", "RESTRICT", 'g' )
     let l:s_protoNew = substitute ( l:s_protoNew, "^(", "({+", '' )
     let l:s_protoNew = substitute ( l:s_protoNew, ")$", "+})", '' )
     let l:s_protoNew = substitute ( l:s_protoNew, ",  ", "+},{+", 'g' )

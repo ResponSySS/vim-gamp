@@ -1,4 +1,4 @@
-*gtags-and-man-proto.txt*   For Vim version 7.0+    Last change: 140522 
+*gtags-and-man-proto.txt*   For Vim version 7.0+    Last change: 140523
 *gtags-and-man-proto*                 
 
 Name~
@@ -76,6 +76,8 @@ In |completion-mode| >
 In |statusline-mode|: >
         printf (const char *format, ...)
 <    Is displayed on statusline.
+Statusline is reset to original when file is written, when Vim insert
+mode ends or when you decide it ( see |MAPPING| ).
 
 >>>>><<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 |GTAGS|
@@ -127,7 +129,7 @@ See: >
         myFunc ({+int_myArg+})      /* GAMP_SpaceAroundArgs == 0 */
 <|g:GAMP_UnloadLoadedBuffer|
     1 : buffer opened by GTags to look for function prototype is 
-        deleted ( with bdelete )
+        deleted ( with bdelete )( unless it's the current file )
 |g:GAMP_StatusLineFmt|
     Format string of the right part of statusline when GAMP is 
     displaying a function prototype ( see 'statusline' )
@@ -150,26 +152,30 @@ vimrc example:
 *GAMP-mapping*
 
 Note: "gm" obviously stands for "_G_tags and _M_an".
+Note: default mapping of <Leader> is the '\' key
+
+*GAMP-mapping-insert*
+In insert mode:
+    <Leader>gmc~
+        Complete a function / show hint in statusline depending on mode
+    <Leader>gmh~
+        Show hint in statusline
 
 *GAMP-mapping-normal*
 In normal mode:
     gmt~
         Toggle GAMP statusline
     gmc~
-        Complete a function / show hint in statusline
-
-*GAMP-mapping-insert*
-In insert mode:
-    <Leader>gm~
-        Complete a function / show hint in statusline
-        Note: default mapping of <Leader> is the '\' key
+        Complete a function / show hint in statusline depending on mode
+    gmh~
+        Show hint in statusline
 
 *GAMP-commands*
 Commands:
     GAMPStatusLineToggle~
         Toggle GAMP statusline
     GAMPComplete~
-        Complete a function
+        Complete a function / show hint in statusline depending on mode
 
 =======================================================================
 Modeline is:

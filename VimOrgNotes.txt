@@ -1,0 +1,71 @@
+*SUMMARY*
+
+Lightweight plugin for full function completion using Linux manual and GTags (not mandatory).
+
+
+*DETAILED DESC*
+
+GAMP is a very lightweight completion system for libc functions and virtually any other functions.
+
+REQUIREMENTS
+  Mandatory:
+    * Linux-like OS with a shell and a manpage system
+    * Vim 'laststatus' must be set to 2
+  Optional:
+    * GNU Global (its use can be disabled)
+
+FEATURES
+  * 3 modes:
+    * Complete function prototype in completion mode
+    * Hint for function prototype in statusline mode
+    * Do all of the above when using both modes
+  * Take definition from all the function manpages from section 2 and 3
+    ( system and library (including libc) calls )
+  * Take definition of any function using GNU Global GTags system
+  * If not using Global GTags, there is no dependency
+  * Real-time updating and no maintenance required if using  gtags.vim  
+    auto-update feature
+
+USAGE EXAMPLE
+In completion mode:
+        printf ||                       /* "||" is the cursor */
+    After pressing <Leader>gmc  becomes:
+        print|f| ( {+const_char_pt_format+}, {+VA_Args+} )
+    Use <C-j> to jump to next argument:
+        printf ( ||, {+VA_Args+} )
+        printf ( "GAMP mark: %d/10"||, {+VA_Args+} )
+    And again:
+        printf ( "GAMP mark: %d/10", || )
+        printf ( "GAMP mark: %d/10", 10|| )
+
+In statusline mode:
+        printf (const char *format, ...)
+     Is displayed on statusline.
+
+NOTES
+  * Functions taking function pointers as arguments are not yet fully supported
+
+*INSTALL DETAILS*
+
+Inside the GAMP.tar archive are two files that you have to put in the appropriate location of your vim folder (for me, it's  $HOME/.vim ).
+You can do it using your graphical archive manager (like  file-roller ), or with the command-line with
+    $ tar -xvf  GAMP.tar
+to extract the archive, and:
+    $ cp  doc/gtags-and-man-proto.txt      $HOME/.vim/doc
+    $ cp  plugin/gtags-and-man-proto.vim   $HOME/.vim/plugin 
+to copy the files.
+
+
+*CHANGELOG*
+
+0.5.9
+140627 :    Bugfix: improved manual pages lookup for multi-line definition ( fwrite, etc... ) and function pointers ( __free_hook, etc... )
+            If found, comments are now removed from prototypes when completing.
+140623 :    Bugfix: g:GAMP_UnloadLoadedBuffer == 1 used to be problematic when function definition was located in the same file as the currently active file.
+140622 :    Bugfix: improved grep matching of manual pages for ambiguous cases ( puts/fputs, etc... )
+140523 :    added  <Leader>gmh  to insert mode mapping
+            renamed  <Leader>gm  mapping to  <Leader>gmc  
+0.5.1
+140522 :    added  <Leader>gm  to normal mode mapping
+            added new mapping and force hint function to display statusline hint for function near cursor
+0.5
