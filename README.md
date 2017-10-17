@@ -14,7 +14,7 @@ REQUIREMENTS
 Mandatory:
   
   * Linux-like OS with a shell and a manpage system
-  * Vim 'laststatus' must be set to 2
+  * Vim `laststatus` must be set to 2
     
 Optional:
   
